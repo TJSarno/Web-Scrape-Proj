@@ -7,7 +7,8 @@ url = "https://www.gamespot.com/articles/2023-upcoming-games-release-schedule/11
 result = requests.get(url)
 doc = BeautifulSoup(result.text, "html.parser")
 
-tags = doc.select('p:-soup-contains(" - ")')
+#tags = doc.select('p:-soup-contains(" - ")')
+tags = doc.find_all('p')
 for tag in tags:
     print(tag.text)
 

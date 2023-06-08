@@ -19,12 +19,10 @@ for tag in tags:
 #Get current date
 my_date = datetime.today()
 #Convert to 'readable' (e.g. 08 June)
-readable_date = datetime.today().strftime('%B %d')
-#Clean string in case of zero padded number (e.g. 08)
 month = datetime.today().strftime('%B')
+#Clean string in case of zero padded number (e.g. 08)
 day = datetime.today().strftime('%d').lstrip('0')
 cleaned_date = month + " " + day
-print(cleaned_date)
 
 r = re.compile('{}'.format(cleaned_date))
 newlist = list(filter(r.findall,dates))

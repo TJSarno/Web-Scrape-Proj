@@ -8,7 +8,8 @@ url = "https://www.gamespot.com/articles/2023-upcoming-games-release-schedule/11
 result = requests.get(url)
 doc = BeautifulSoup(result.text, "html.parser")
 
-##Working
+#Store all release dates found in an array.
+##Note this includes dummy data, however no workaround possible due to website formatting.
 dates = []
 tags = doc.find_all('p')
 for tag in tags:
@@ -26,12 +27,6 @@ cleaned_date = month + " " + day
 print(cleaned_date)
 
 r = re.compile('{}'.format(cleaned_date))
-#r = re.compile("June 8")
 newlist = list(filter(r.findall,dates))
 print (newlist)
 
-        
-#current_release_date = tags
-#prices = doc.find_all(string="$")
-#print(prices)
-# 

@@ -18,13 +18,18 @@ for tag in tags:
 #Get current date
 my_date = datetime.today()
 #Convert to 'readable' (e.g. 08 June)
-readable_date = datetime.today().strftime('%d %B')
+readable_date = datetime.today().strftime('%B %d')
 #Clean string in case of zero padded number (e.g. 08)
-cleaned_date = readable_date.lstrip('0')
+month = datetime.today().strftime('%B')
+day = datetime.today().strftime('%d').lstrip('0')
+cleaned_date = month + " " + day
+print(cleaned_date)
 
-for date in dates:
-    if re.search(str(cleaned_date),date):
-        print("match found")
+r = re.compile('{}'.format(cleaned_date))
+#r = re.compile("June 8")
+newlist = list(filter(r.findall,dates))
+print (newlist)
+
         
 #current_release_date = tags
 #prices = doc.find_all(string="$")

@@ -1,15 +1,16 @@
 from bs4 import BeautifulSoup
 import requests
+import re
 
 url = "https://www.gamespot.com/articles/2023-upcoming-games-release-schedule/1100-6508202/"
 
 result = requests.get(url)
 doc = BeautifulSoup(result.text, "html.parser")
 
-tags = doc.find_all("p")
-parent = tags[0].parent
+tags = doc.select('p:-soup-contains(" - ")')
+for tag in tags:
+    print(tag.text)
 
-print(parent)
 
 #current_release_date = tags
 #prices = doc.find_all(string="$")

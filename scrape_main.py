@@ -2,8 +2,11 @@ from bs4 import BeautifulSoup
 import requests
 import re
 from datetime import datetime
+import numpy as np
+import pandas as pd
 
 url = "https://www.gamespot.com/articles/2023-upcoming-games-release-schedule/1100-6508202/"
+filepath = "C:\\Users\\Tom\\Desktop\\Web Scraper Project\\Web-Scrape-Proj\\csvs\\gamedates.csv"
 
 result = requests.get(url)
 doc = BeautifulSoup(result.text, "html.parser")
@@ -15,6 +18,17 @@ tags = doc.find_all('p')
 for tag in tags:
     content = tag.text
     dates.append(content)
+
+##Write to CSV
+a = np.asarray(dates)
+df = pd.DataFrame(dates)
+print(df)
+df.to_csv(filepath, index= False,header= False)
+
+#file = open(filepath)
+#with file:
+#    write = csv.writer(file)
+#    write.writerows(dates)
 
 #Get current date
 my_date = datetime.today()

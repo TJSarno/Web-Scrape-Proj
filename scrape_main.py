@@ -2,33 +2,31 @@ from bs4 import BeautifulSoup
 import requests
 import re
 from datetime import datetime
-import numpy as np
 import pandas as pd
 
-url = "https://www.gamespot.com/articles/2023-upcoming-games-release-schedule/1100-6508202/"
-filepath = "C:\\Users\\Tom\\Desktop\\Web Scraper Project\\Web-Scrape-Proj\\csvs\\gamedates.csv"
+urlT = "https://www.gamespot.com/articles/2023-upcoming-games-release-schedule/1100-6508202/"
+filepathT = "C:\\Users\\Tom\\Desktop\\Web Scraper Project\\Web-Scrape-Proj\\csvs\\gamedates.csv"
 
-result = requests.get(url)
-doc = BeautifulSoup(result.text, "html.parser")
+def update_csv(url, tag_type, filepath):
+    #Http request
+    result = requests.get(url)
+    doc = BeautifulSoup(result.text, "html.parser")
 
-#Store all release dates found in an array.
-##Note this includes dummy data, however no workaround possible due to website formatting.
-dates = []
-tags = doc.find_all('p')
-for tag in tags:
-    content = tag.text
-    dates.append(content)
+    #Store all release dates found in an array.
+    #NOTE: this can include dummy data, workarounds sometimes not possible due to website formatting.
+    dates = []
+    tags = doc.find_all(tag_type)
+    for tag in tags:
+        content = tag.text
+        dates.append(content)
 
-##Write to CSV
-a = np.asarray(dates)
-df = pd.DataFrame(dates)
-print(df)
-df.to_csv(filepath, index= False,header= False)
+    ##Write to CSV
+    df = pd.DataFrame(dates)
+    df.to_csv(filepath, index= False,header= False)
 
-#file = open(filepath)
-#with file:
-#    write = csv.writer(file)
-#    write.writerows(dates)
+update_csv(urlT, 'p', filepathT)
+
+
 
 #Get current date
 my_date = datetime.today()
@@ -38,7 +36,11 @@ month = datetime.today().strftime('%B')
 day = datetime.today().strftime('%d').lstrip('0')
 cleaned_date = month + " " + day
 
-r = re.compile('{}'.format(cleaned_date))
-newlist = list(filter(r.findall,dates))
-print (newlist)
+#Open and read csv
+with open(filepathT) as csv:
+    contents = csv.read()
+#Match regex of current date
+pattern = r'(^.*{}.*$)'.format(re.escape(cleaned_date))
+matches = re.findall(pattern,contents, re.MULTILINE)
+print(matches)
 

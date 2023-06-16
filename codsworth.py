@@ -14,21 +14,28 @@ load_dotenv(env)
 
 #Assign .env Variables
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHANNEL_ID = os.environ.get("CHANNEL_ID")
+#CHANNEL_ID = os.environ.get("CHANNEL_ID")
+
+##Testing Channel
+CHANNEL_ID = os.environ.get("TEST_CHANNEL")
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 #Time variables
 #Left fluff years in case time delta is ever used in the future to make additions.
-startOfDay = datetime.datetime(100,1,1, hour= 11, minute= 0, second=0)
-endOfDay = datetime.datetime(100,1,1, hour = 20, minute= 0, second=0)
+start_of_day = datetime.datetime(100,1,1, hour= 11, minute= 0, second=0)
+end_of_day = datetime.datetime(100,1,1, hour = 20, minute= 0, second=0)
 
-
+##BOT COMMANDS##
+#Disconnect from server
 @bot.command()
 async def dc(ctx):
     await quit()
 
-@tasks.loop(time=startOfDay.time()) #Create the task
+
+##BOT EVENTS##
+#Start reminders (happens at set start of day interval)
+@tasks.loop(time=start_of_day.time()) #Create the task
 async def GoodMorning():
     channel = bot.get_channel(CHANNEL_ID)
     await channel.send("Good morning! May your outlook be empty and your teams chat dead. Take your meds.")
@@ -37,13 +44,15 @@ async def GoodMorning():
         HourlyReminder.start() #If the task is not already running, start it.
         print("Hourly reminder has started")
 
+#Hourly reminder
 @tasks.loop(hours = 1)
 async def HourlyReminder():   
     channel = bot.get_channel(CHANNEL_ID)
     await channel.send("Posture, hydration and standup/stretch your wrists check homies <:PatrickPray:879074456528650250>")
     print("reminder sent")
 
-@tasks.loop(time=endOfDay.time()) #Create the task
+#End reminders (happens at set end of day internal)
+@tasks.loop(time=end_of_day.time()) #Create the task
 async def GoodNight():
     channel = bot.get_channel(CHANNEL_ID)
     HourlyReminder.stop()
@@ -52,6 +61,7 @@ async def GoodNight():
     print("Night Working")
 
 
+#EVENT SEMAPHORES#
 @bot.event
 async def on_ready():
     if not GoodMorning.is_running():

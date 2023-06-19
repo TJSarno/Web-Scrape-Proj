@@ -6,6 +6,7 @@ from datetime import timedelta
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import asyncio
 
 #Load in .env variables
 cwd = str(Path(__file__).resolve().parent)
@@ -21,10 +22,12 @@ CHANNEL_ID = os.environ.get("TEST_CHANNEL")
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
-#Time variables
+#Time variables, set at 9am and 8pm by default
+start_hour = 9
+end_hour = 20
 #Left fluff years in case time delta is ever used in the future to make additions.
-start_of_day = datetime.datetime(100,1,1, hour= 11, minute= 0, second=0)
-end_of_day = datetime.datetime(100,1,1, hour = 20, minute= 0, second=0)
+start_of_day = datetime.datetime(100,1,1, hour= start_hour, minute= 0, second=0)
+end_of_day = datetime.datetime(100,1,1, hour = end_hour, minute= 0, second=0)
 
 ##BOT COMMANDS##
 #Disconnect from server
@@ -32,6 +35,20 @@ end_of_day = datetime.datetime(100,1,1, hour = 20, minute= 0, second=0)
 async def dc(ctx):
     await quit()
 
+@bot.command()
+async def update_start_hour(ctx,arg):
+    print(arg)
+    set_start_of_day(int(arg))
+    start_of_day = datetime.datetime(2023,6,19, hour= int(arg), minute= 50, second=0)
+    print(start_of_day)
+    GoodMorning.stop()
+    print("hourly reminded stopped")
+    HourlyReminder.start()
+    print("hourly reminded started")
+    #new_time = get_start_of_day()
+    #print(new_time)
+    #channel = bot.get_channel(CHANNEL_ID)
+    #await channel.send("Start of day set to: ")
 
 ##BOT EVENTS##
 #Start reminders (happens at set start of day interval)
@@ -61,7 +78,7 @@ async def GoodNight():
     print("Night Working")
 
 
-#EVENT SEMAPHORES#
+##EVENT SEMAPHORES##
 @bot.event
 async def on_ready():
     if not GoodMorning.is_running():
@@ -72,5 +89,20 @@ async def on_ready():
         print("Good night task started")
     #Set channel ID
     
+##MISC FUNCTIONS##
+#Getters and setters for start of day
+def get_start_of_day():
+    return start_of_day
+
+def set_start_of_day(new_hour):
+    start_of_day = datetime.datetime(100,1,1, hour= new_hour, minute= 0, second=0)
+
+#Getters and setters for end of day
+def get_end_of_day():
+    return end_of_day
+
+def set_end_of_day(new_hour):
+    end_of_day = datetime.datetime(100,1,1, hour= new_hour, minute= 0, second=0)
+
 
 bot.run(BOT_TOKEN)

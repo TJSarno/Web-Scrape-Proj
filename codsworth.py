@@ -7,6 +7,8 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 import asyncio
+import sys
+import subprocess
 
 #Load in .env variables
 cwd = str(Path(__file__).resolve().parent)
@@ -16,6 +18,7 @@ load_dotenv(env)
 #Assign .env Variables
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 #CHANNEL_ID = os.environ.get("CHANNEL_ID")
+#test
 
 ##Testing Channel
 CHANNEL_ID = os.environ.get("TEST_CHANNEL")
@@ -29,6 +32,8 @@ end_hour = 20
 start_of_day = datetime.datetime(100,1,1, hour= start_hour, minute= 0, second=0)
 end_of_day = datetime.datetime(100,1,1, hour = end_hour, minute= 0, second=0)
 
+start_of_day_task = None
+
 ##BOT COMMANDS##
 #Disconnect from server
 @bot.command()
@@ -36,19 +41,31 @@ async def dc(ctx):
     await quit()
 
 @bot.command()
+async def restart(ctx):
+    await ctx.send("Restarting bot...")
+    await restart_bot()
+
+async def restart_bot():
+    print("checkpoint 1")
+    await asyncio.sleep(1)
+    python = sys.executable
+    subprocess.Popen([python] + sys.argv)
+    await bot.close()
+    sys.exit(0)  # Optional, use if necessary
+    print("checkpoint 2")
+
+  
+
+@bot.command()
 async def update_start_hour(ctx,arg):
     print(arg)
-    set_start_of_day(int(arg))
-    start_of_day = datetime.datetime(2023,6,19, hour= int(arg), minute= 50, second=0)
+    global start_of_day
     print(start_of_day)
-    GoodMorning.stop()
-    print("hourly reminded stopped")
-    HourlyReminder.start()
-    print("hourly reminded started")
-    #new_time = get_start_of_day()
-    #print(new_time)
-    #channel = bot.get_channel(CHANNEL_ID)
-    #await channel.send("Start of day set to: ")
+    start_of_day = datetime.datetime(2023,6,19, hour= int(arg), minute= 40, second=0)
+    print(start_of_day)
+
+    GoodMorning.restart()
+    print("good morning restarted")
 
 ##BOT EVENTS##
 #Start reminders (happens at set start of day interval)
@@ -87,8 +104,9 @@ async def on_ready():
     if not GoodNight.is_running():
         GoodNight.start() #If the task is not already running, start it.
         print("Good night task started")
-    #Set channel ID
-    
+
+
+
 ##MISC FUNCTIONS##
 #Getters and setters for start of day
 def get_start_of_day():

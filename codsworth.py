@@ -39,7 +39,7 @@ csv_path = cwd + "\\csvs\\variables.csv"
 df = pd.read_csv(csv_path, header=None)
 
 print(df)
-start_hour, start_minute, end_hour, end_minute = df.iloc[0]
+start_hour, start_minute, end_hour, end_minute = df[0]
 
 #Left fluff years in case time delta is ever used in the future to make additions.
 start_of_day = datetime.time(hour= start_hour, minute= start_minute, second=0)
@@ -66,25 +66,24 @@ async def restart_bot():
     python = sys.executable
     subprocess.Popen([python] + sys.argv)
     await bot.close()
-    sys.exit(0)  # Optional, use if necessary
-    print("checkpoint 2")
+    #sys.exit(0)  # Optional, use if necessary
 
   
 
 @bot.command()
-async def update_start_hour(ctx,arg1,arg2):
-    #print(arg)
-    global start_of_day
-    print(start_of_day)
-    start_of_day = datetime.datetime(2023,6,19, hour= int(arg1), minute= int(arg2), second=0 )
-    print(start_of_day)
+async def update_schedule(ctx,arg1,arg2,arg3,arg4):
+    csv_path = cwd + "\\csvs\\variables.csv"
+    new_schedule = [int(arg1),int(arg2),int(arg3),int(arg4)]
 
-    schedule_daily_message.restart()
+    df = pd.DataFrame(new_schedule)
+    df.to_csv(csv_path, index= False,header= False)
+
     print("good morning restarted")
+    await restart_bot()
 
 ##BOT EVENTS##
 #Start reminders (happens at set start of day interval)
-#@tasks.loop(time=start_of_day) #Create the task
+#@tasks.loop(time=start_of_day.time()) #Create the task
 async def schedule_daily_message():
     now = datetime.datetime.now()
     then = now.replace(hour=start_hour, minute=start_minute)

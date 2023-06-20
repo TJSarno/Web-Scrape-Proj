@@ -9,6 +9,7 @@ from pathlib import Path
 import asyncio
 import sys
 import subprocess
+import pandas as pd
 
 #Load in .env variables
 cwd = str(Path(__file__).resolve().parent)
@@ -21,18 +22,32 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 #test
 
 ##Testing Channel
-CHANNEL_ID = os.environ.get("TEST_CHANNEL")
+CHANNEL_ID = int(os.environ.get("TEST_CHANNEL"))
+print("////////CHANNELID/////////")
+print (type(CHANNEL_ID))
+
+
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
-#Time variables, set at 9am and 8pm by default
-start_hour = 9
-end_hour = 20
-#Left fluff years in case time delta is ever used in the future to make additions.
-start_of_day = datetime.datetime(100,1,1, hour= start_hour, minute= 0, second=0)
-end_of_day = datetime.datetime(100,1,1, hour = end_hour, minute= 0, second=0)
+channel = bot.get_channel(1062400154554093578)
+print("////CHANNEL TYPE////////")
+print(type(channel))
 
-start_of_day_task = None
+#Read in Codsworth variable csv
+csv_path = cwd + "\\csvs\\variables.csv"
+df = pd.read_csv(csv_path, header=None)
+
+print(df)
+start_hour, start_minute, end_hour, end_minute = df.iloc[0]
+
+#Left fluff years in case time delta is ever used in the future to make additions.
+start_of_day = datetime.time(hour= start_hour, minute= start_minute, second=0)
+end_of_day = datetime.time(hour = end_hour, minute= end_minute, second=0)
+
+print(start_of_day)
+print(end_of_day)
+
 
 ##BOT COMMANDS##
 #Disconnect from server
@@ -57,22 +72,26 @@ async def restart_bot():
   
 
 @bot.command()
-async def update_start_hour(ctx,arg):
-    print(arg)
+async def update_start_hour(ctx,arg1,arg2):
+    #print(arg)
     global start_of_day
     print(start_of_day)
-    start_of_day = datetime.datetime(2023,6,19, hour= int(arg), minute= 40, second=0)
+    start_of_day = datetime.datetime(2023,6,19, hour= int(arg1), minute= int(arg2), second=0 )
     print(start_of_day)
 
-    GoodMorning.restart()
+    schedule_daily_message.restart()
     print("good morning restarted")
 
 ##BOT EVENTS##
 #Start reminders (happens at set start of day interval)
-@tasks.loop(time=start_of_day.time()) #Create the task
-async def GoodMorning():
+#@tasks.loop(time=start_of_day) #Create the task
+async def schedule_daily_message():
+    now = datetime.datetime.now()
+    then = now.replace(hour=start_hour, minute=start_minute)
+    wait_time = (then-now).total_seconds()
+    await asyncio.sleep(wait_time)
     channel = bot.get_channel(CHANNEL_ID)
-    await channel.send("Good morning! May your outlook be empty and your teams chat dead. Take your meds.")
+    await channel.send("Good Morning")
     print("Morning Working")
     if not HourlyReminder.is_running():
         HourlyReminder.start() #If the task is not already running, start it.
@@ -86,7 +105,7 @@ async def HourlyReminder():
     print("reminder sent")
 
 #End reminders (happens at set end of day internal)
-@tasks.loop(time=end_of_day.time()) #Create the task
+@tasks.loop(time=end_of_day) #Create the task
 async def GoodNight():
     channel = bot.get_channel(CHANNEL_ID)
     HourlyReminder.stop()
@@ -98,12 +117,13 @@ async def GoodNight():
 ##EVENT SEMAPHORES##
 @bot.event
 async def on_ready():
-    if not GoodMorning.is_running():
-        GoodMorning.start() #If the task is not already running, start it.
-        print("Good morning task started")
-    if not GoodNight.is_running():
-        GoodNight.start() #If the task is not already running, start it.
-        print("Good night task started")
+    await schedule_daily_message()
+    #if not schedule_daily_message.is_running():
+    #    schedule_daily_message.start() #If the task is not already running, start it.
+    #    print("Good morning task started")
+    #if not GoodNight.is_running():
+    #    GoodNight.start() #If the task is not already running, start it.
+    #    print("Good night task started")
 
 
 

@@ -73,6 +73,11 @@ async def schedule_message(hour, minute, period):
     #Currently this always sends a message if started post scheduled time
     now = datetime.datetime.now()
     then = now.replace(hour=hour, minute=minute)
+
+    #Conditional check to see it has already passed, if so schedule for the following day
+    if then < now:
+        then = then + datetime.timedelta(days=1)
+
     wait_time = (then-now).total_seconds()
     await asyncio.sleep(wait_time)
     channel = bot.get_channel(CHANNEL_ID)
@@ -80,11 +85,9 @@ async def schedule_message(hour, minute, period):
     #Switch case to select morning or night message/routine
     match period:
         case "morning":
-            await channel.send("Good Morning")
             print("Morning Working")
-            if not hourly_reminder.is_running():
-                hourly_reminder.start() #If the task is not already running, start it.
-                print("Hourly reminder has started")
+            #Start 24 hour loop
+            daily_loop.start(period)
         case "night":
             print("Night Working")
             if hourly_reminder.is_running():
@@ -95,11 +98,32 @@ async def schedule_message(hour, minute, period):
                 await channel.send("Good Night")
     
 #Hourly reminder
-@tasks.loop(hours = 1)
+@tasks.loop(minutes = 1)
 async def hourly_reminder():   
     channel = bot.get_channel(CHANNEL_ID)
     await channel.send("Posture, hydration and standup/stretch your wrists check homies <:PatrickPray:879074456528650250>")
     print("reminder sent")
+
+#Daily loop
+@tasks.loop(hours= 24)
+async def daily_loop(period):
+    channel = bot.get_channel(CHANNEL_ID)
+    #Switch case to select morning or night message/routine
+    match period:
+        case"morning":
+            await channel.send("Good Morning")
+            print("Morning Working")
+            if not hourly_reminder.is_running():
+                        hourly_reminder.start() #If the task is not already running, start it.
+                        print("Hourly reminder has started")
+        case "night":
+                #print("Night Working")
+                if hourly_reminder.is_running():
+                    hourly_reminder.stop() #If the task is not already running, start it.
+                    print("Hourly reminder has stopped")
+                    #Small time delay ensure good night message is posted after hourly reminder
+                    time.sleep(10)
+                    await channel.send("Good Night")
 
 
 ##EVENT SEMAPHORES##

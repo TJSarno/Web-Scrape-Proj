@@ -47,7 +47,6 @@ async def restart(ctx):
     await restart_bot()
 
 async def restart_bot():
-    print("checkpoint 1")
     await asyncio.sleep(1)
     python = sys.executable
     subprocess.Popen([python] + sys.argv)
